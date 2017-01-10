@@ -202,14 +202,14 @@ unique_append(InList, InInt, OutList) :-
 
 read_segs(In, MaxSegs, CurSeg, LastByte, CurSegTotals, SegTotalsOut, Continues, !IO) :-
     ( MaxSegs = 0 ->
-        ( LastByte = 0 ->
-            Continues = ends
-        ;
+        ( LastByte = 255 ->
             Continues = continues
+        ;
+            Continues = ends
         ),
         SegTotalsOut = io.ok(SegTotals),
         ( CurSeg = 0 ->
-            % TODO: Assert that LastByte = 0?
+            % Uhhh ?
             SegTotals = CurSegTotals
         ;
             list.append(CurSegTotals, [CurSeg+0|[]], SegTotals)
@@ -225,17 +225,22 @@ read_segs(In, MaxSegs, CurSeg, LastByte, CurSegTotals, SegTotalsOut, Continues, 
             ByteRes = io.eof,
             unique_append(CurSegTotals, CurSeg, SegTotals),
             SegTotalsOut = io.ok(SegTotals),
-            ( LastByte = 0 ->
-                Continues = ends
-            ;
+            ( LastByte = 255 ->
                 Continues = continues
+            ;
+                Continues = ends
             )
         ;
             ByteRes = io.error(Err), SegTotalsOut = io.error(Err),
             Continues = ends % Hmm, seems this ought to be stuck in the result.
         ;
             ByteRes = io.ok(Byte),
-            read_segs(In, MaxSegs-1, CurSeg+Byte, Byte, CurSegTotals, SegTotalsOut, Continues, !IO)
+            ( Byte = 255 ->
+                read_segs(In, MaxSegs-1, CurSeg+Byte, Byte, CurSegTotals, SegTotalsOut, Continues, !IO)
+            ;
+                unique_append(CurSegTotals, CurSeg, SegTotals),
+                read_segs(In, MaxSegs-1, 0, Byte, SegTotals, SegTotalsOut, Continues, !IO)               
+            )
         )
     ).
 
