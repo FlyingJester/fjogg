@@ -40,6 +40,8 @@
 % Succeeds if the last packet from packet_out is continued on the next page.
 :- pred packet_crosses_page(page::in) is semidet.
 
+:- pred last_packet(page::in) is semidet.
+
 %------------------------------------------------------------------------------%
 
 % These functions are not vitally necessary, but can be used to check for ogg
@@ -110,6 +112,10 @@ eos(Page) :- Page ^ flags /\ (1 << 2) = (1 << 2).
 %------------------------------------------------------------------------------%
 
 continuation(Page) :- Page ^ flags /\ 1 = 1.
+
+%------------------------------------------------------------------------------%
+
+last_packet(Page) :- Page ^ segments = [].
 
 %------------------------------------------------------------------------------%
 
