@@ -244,7 +244,7 @@ read_segs(In, MaxSegs, CurSeg, LastByte, CurSegTotals, SegTotalsOut, Continues, 
             ( Byte = 255 ->
                 read_segs(In, MaxSegs-1, CurSeg+Byte, Byte, CurSegTotals, SegTotalsOut, Continues, !IO)
             ;
-                unique_append(CurSegTotals, CurSeg, SegTotals),
+                unique_append(CurSegTotals, CurSeg+Byte, SegTotals),
                 read_segs(In, MaxSegs-1, 0, Byte, SegTotals, SegTotalsOut, Continues, !IO)               
             )
         )
@@ -291,7 +291,7 @@ read_page_v0(In, Res, !IO) :-
         FlagsRes = io.error(Err), Res = io.error(Err)
     ;
         FlagsRes = io.ok(Flags),
-        stream.seek(In, stream.cur, 6, !IO), % Skip granule position.
+        stream.seek(In, stream.cur, 8, !IO), % Skip granule position.
         read_int32(In, StreamNumRes, !IO),
         (
             StreamNumRes = io.eof, Res = io.error(eof("stream serial number"))
